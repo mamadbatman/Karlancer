@@ -10,19 +10,19 @@ use App\Http\Requests\UserRequest;
 
 class UserController extends Controller
 {
-    // نمایش لیست کاربران
+    // Display the list of users
     public function index()
     {
         return User::all();
     }
 
-    // نمایش جزئیات یک کاربر خاص
+    // View details of a specific user
     public function show(User $user)
     {
         return $user;
     }
 
-    // ذخیره کاربر جدید
+    // Save new user
     public function store(UserRequest $request)
     {
         $request['password'] = Hash::make($request['password']);
@@ -30,12 +30,9 @@ class UserController extends Controller
         return $user;
     }
 
-    public function checkUser()
-    {
 
-    }
 
-    // به‌روزرسانی کاربر
+    // User update
     public function update(Request $request, User $user)
     {
         $validatedData = $request->validate([
@@ -59,7 +56,7 @@ class UserController extends Controller
         return $user;
     }
 
-    // حذف کاربر
+    // Delete user
     public function destroy(User $user)
     {
         $user->delete();

@@ -19,7 +19,10 @@ class Task extends Model
         'end_date',
         'expiration_date'
     ];
-
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
 
 }

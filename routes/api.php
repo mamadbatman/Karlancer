@@ -7,7 +7,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
-/*
+use App\Http\Controllers\API\ActivationController;/*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
@@ -20,6 +20,7 @@ use App\Http\Controllers\UserController;
 
 Route::controller(RegisterController::class)->group(function(){
     Route::post('register', 'register');
+    Route::get('/auth/activate/{token}', [ActivationController::class, 'activate']);
     Route::post('login', 'login');
 });
 

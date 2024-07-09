@@ -25,7 +25,6 @@ class TaskRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'user_id' => 'required',
             'description' => 'nullable|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Validator;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\UserRequest;
+use App\Models\ActivationToken;
+use Illuminate\Support\Str;
 
 class RegisterController extends BaseController
 {
@@ -25,7 +27,19 @@ class RegisterController extends BaseController
         $success['token'] =  $user->createToken('MyApp')->plainTextToken;
         $success['name'] =  $user->name;
 
-        return $this->sendResponse($success, 'User register successfully.');
+        $token = Str::random(60);
+        ActivationToken::create([
+            'user_id' => $user->id,
+            'token' => $token,
+        ]);
+        $activationLink = url('/api/auth/activate/' . $token);
+
+//        return $this->sendResponse($success, 'User register successfully.',);
+        return response()->json([
+            'message' => 'User registered successfully. Please check your email for activation link.',
+            'activation_link' => $activationLink,
+            'User register successfully.' => $success,
+        ], 201);
     }
 
     /**
