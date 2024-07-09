@@ -1,59 +1,86 @@
 <?php
 
-
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\Task;
 
 class TaskTest extends TestCase
 {
-    use RefreshDatabase; // Use RefreshDatabase trait to reset database after each test
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Prevent the RefreshDatabase trait from deleting data
+        $this->user = User::factory()->create();
+        $this->actingAs($this->user, 'sanctum');
     }
 
     /** @test */
-    public function can_create_task()
+    public function it_should_list_all_tasks()
     {
-        // Create a user for testing purposes
-        $user = User::factory()->create();
+        Task::factory()->count(5)->create();
+        $response = $this->getJson('/api/tasks');
+        $response->assertStatus(200)
+            ->assertJsonCount(5);
+    }
 
-        // Authenticate the user
-        $this->actingAs($user);
+    /** @test */
+    public function it_should_show_a_single_task()
+    {
+        $task = Task::factory()->create();
+        $response = $this->getJson('/api/tasks/' . $task->id);
+        $response->assertStatus(200)
+            ->assertJson([
+                'id' => $task->id,
+                'title' => $task->title,
+                // Include other fields you need to assert
+            ]);
+    }
 
-        // Define data for the task
-        $data = [
-            'title' => 'New Task',
-            'description' => 'Description of the new task',
-            'user_id' => $user->id,  // Assign the user_id
-            'start_date' => '2024-07-10',
-            'end_date' => '2024-07-15',
-            'expiration_date' => '2024-07-20',
-        ];
-
-        // Send POST request to create task
-        $response = $this->postJson('/api/tasks', $data);
-
-        // Assert HTTP response status code and JSON data
+    /** @test */
+    public function it_should_create_a_task()
+    {
+        $taskData = Task::factory()->make()->toArray();
+        $response = $this->postJson('/api/tasks', $taskData);
         $response->assertStatus(201)
-            ->assertJson($data);
+            ->assertJson([
+                'message' => 'task registered successfully.',
+                'task' => [
+                    'title' => $taskData['title'],
+                    // Include other fields you need to assert
+                ]
+            ]);
+        $this->assertDatabaseHas('tasks', $taskData);
+    }
 
-        // Assert the task exists in the database
-        $this->assertDatabaseHas('tasks', [
-            'title' => 'New Task',
-            'description' => 'Description of the new task',
-            'user_id' => $user->id,
-            'start_date' => '2024-07-10',
-            'end_date' => '2024-07-15',
-            'expiration_date' => '2024-07-20',
-        ]);
+    /** @test */
+    public function it_should_update_a_task()
+    {
+        $task = Task::factory()->create();
+        $updatedTaskData = Task::factory()->make()->toArray();
+        $response = $this->putJson('/api/tasks/' . $task->id, $updatedTaskData);
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => 'task updated successfully.',
+                'task' => [
+                    'id' => $task->id,
+                    'title' => $updatedTaskData['title'],
+                    // Include other fields you need to assert
+                ]
+            ]);
+        $this->assertDatabaseHas('tasks', $updatedTaskData);
+    }
+
+    /** @test */
+    public function it_should_delete_a_task()
+    {
+        $task = Task::factory()->create();
+        $response = $this->deleteJson('/api/tasks/' . $task->id);
+        $response->assertStatus(204);
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
     }
 }
